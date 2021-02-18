@@ -1,2 +1,1 @@
-# LookingForJob
-###### 努力奋斗找工作
+###### Let's study for a better future
