@@ -152,7 +152,97 @@ class Solution {
             return Double(list[index])
         }
     }
+    
+    // MARK: 5. 最长回文子串
+    // 给你一个字符串 s，找到 s 中最长的回文子串。
+    func longestPalindrome(_ s: String) -> String {
+        guard s.count > 0 else {
+            return ""
+        }
+        var list = Array(s), count = list.count, maxCount = 0, start = 0, end = 0, i = 0
+        while i < count {
+            if i == 0 {
+                start = i
+                while i < count, list[i] == list[0] {
+                    i += 1
+                }
+                end = i - 1
+                maxCount = end - start + 1
+            } else {
+                if 2 * (i + 1) <= maxCount {
+                    i += 1
+                    continue
+                } else if 2 * (count - i + 1) <= maxCount {
+                    i += 1
+                    break
+                } else {
+                    var left = i, right = i
+                    while left > 0, list[left - 1] == list[i] {
+                        left -= 1
+                    }
+                    while right < count - 1, list[right + 1] == list[i] {
+                        right += 1
+                    }
+                    while left >= 0, right < count, list[left] == list[right] {
+                        left -= 1
+                        right += 1
+                    }
+                    left += 1
+                    right -= 1
+                    let count = right - left + 1
+                    if count > maxCount {
+                        maxCount = count
+                        start = left
+                        end = right
+                    }
+                    i += 1
+                }
+            }
+        }
+        return String(Array(list[start...end]))
+    }
+
+    // MARK: 6.Z 字形变换
+    // 将一个给定字符串 s 根据给定的行数 numRows ，以从上往下、从左到右进行 Z 字形排列。
+    func convert(_ s: String, _ numRows: Int) -> String {
+        if numRows == 1 {
+            return s
+        }
+        let list = Array(s)
+        var tempList: [[Character]] = Array(repeating: [], count: numRows), i = 0, isIncrease = true
+        for c in list {
+            tempList[i].append(c)
+            if isIncrease {
+                i += 1
+            } else {
+                i -= 1
+            }
+            if i == 0 {
+                isIncrease = true
+            } else if i == numRows - 1 {
+                isIncrease = false
+            }
+        }
+        let result = tempList.flatMap( { return $0 })
+        return String(result)
+    }
+    
+    // MARK: 7.整数反转
+    // 给你一个 32 位的有符号整数 x ，返回 x 中每位上的数字反转后的结果。如果反转后整数超过 32 位的有符号整数的范围 [−231,  231 − 1] ，就返回 0。假设环境不允许存储 64 位整数（有符号或无符号）。
+    func reverse(_ x: Int) -> Int {
+        var x = x, sum = 0
+        while x != 0 {
+            sum = sum * 10 + x % 10
+            x = x / 10
+        }
+        if sum > Int32.max || sum < Int32.min {
+            return 0
+        }
+        return sum
+    }
+    
 }
 let SL = Solution()
+
 
 
