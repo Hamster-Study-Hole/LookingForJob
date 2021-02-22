@@ -481,9 +481,143 @@ class Solution {
         return String(result)
     }
     
+    // MARK: 15.三数之和
+    // 给你一个包含 n 个整数的数组 nums，判断 nums 中是否存在三个元素 a，b，c ，使得 a + b + c = 0 ？
+    // 请你找出所有和为 0 且不重复的三元组。
+    func threeSum(_ nums: [Int]) -> [[Int]] {
+        if nums.count < 3 {
+            return []
+        }
+        let nums = nums.sorted()
+        if nums[0] > 0 {
+            return []
+        }
+        var i = 0, result: [[Int]] = []
+        while i < nums.count - 2 {
+            var left = i + 1, right = nums.count - 1
+            while left < right {
+                let sum = nums[i] + nums[left] + nums[right]
+                if sum > 0 {
+                    right -= 1
+                } else if sum < 0 {
+                    left += 1
+                } else {
+                    result.append([nums[i], nums[left], nums[right]])
+                    left += 1
+                    right -= 1
+                    while left < right, nums[left] == nums[left-1] {
+                        left += 1
+                    }
+                    while left < right, nums[right] == nums[right+1] {
+                        right -= 1
+                    }
+                }
+            }
+            i += 1
+            while i < nums.count - 2, nums[i] == nums[i-1] {
+                i += 1
+            }
+        }
+        return result
+    }
+    
+    // MARK: 16.最接近的三数之和
+    // 给定一个包括 n 个整数的数组 nums 和 一个目标值 target。找出 nums 中的三个整数，使得它们的和与 target 最接近。
+    // 返回这三个数的和。假定每组输入只存在唯一答案。
+    func threeSumClosest(_ nums: [Int], _ target: Int) -> Int {
+        // 借着上面的算法修改了一下
+        var result = 0, minDifference = Int.max, i = 0
+        let nums = nums.sorted()
+        while i < nums.count - 2 {
+            var left = i + 1, right = nums.count - 1
+            while left < right {
+                let sum = nums[i] + nums[left] + nums[right]
+                let difference = sum - target
+                if difference != 0 {
+                    let absDifference = abs(difference)
+                    if absDifference < minDifference {
+                        minDifference = absDifference
+                        result = sum
+                    }
+                    if difference == absDifference {
+                        right -= 1
+                    } else {
+                        left += 1
+                    }
+                } else {
+                    return target
+                }
+            }
+            i += 1
+            while i < nums.count - 2, nums[i] == nums[i-1] {
+                i += 1
+            }
+        }
+        return result
+    }
+    
+    // MARK: 766.托普利茨矩阵
+    // 给你一个 m x n 的矩阵 matrix 。如果这个矩阵是托普利茨矩阵，返回 true ；否则，返回 false 。
+    // 如果矩阵上每一条由左上到右下的对角线上的元素都相同，那么这个矩阵是 托普利茨矩阵 。
+    // [
+    // [1,2,3]
+    // [2,1,2]
+    // [3,2,1]
+    // ]
+    func isToeplitzMatrix(_ matrix: [[Int]]) -> Bool {
+        for i in 1..<matrix.count {
+            for j in 1..<matrix[0].count {
+                if matrix[i][j] != matrix[i - 1][j - 1] {
+                    return false
+                }
+            }
+        }
+        return true
+    }
+    
+    // MARK: 1052. 爱生气的书店老板
+    // 今天，书店老板有一家店打算试营业 customers.length 分钟。每分钟都有一些顾客（customers[i]）会进入书店，
+    // 所有这些顾客都会在那一分钟结束后离开。在某些时候，书店老板会生气。 如果书店老板在第 i 分钟生气，那么 grumpy[i] = 1，
+    // 否则 grumpy[i] = 0。 当书店老板生气时，那一分钟的顾客就会不满意，不生气则他们是满意的。
+    // 书店老板知道一个秘密技巧，能抑制自己的情绪，可以让自己连续 X 分钟不生气，但却只能使用一次。
+    // 请你返回这一天营业下来，最多有多少客户能够感到满意的数量。
+    // 例: customers = [1,0,1,2,1,1,7,5], grumpy = [0,1,0,1,0,1,0,1], X = 3 输出: 16
+    // 书店老板在最后 3 分钟保持冷静。感到满意的最大客户数量 = 1 + 1 + 1 + 1 + 7 + 5 = 16.
+    func maxSatisfied(_ customers: [Int], _ grumpy: [Int], _ X: Int) -> Int {
+        var normalNum = 0, maxNum = 0
+        for i in 0..<customers.count {
+            if grumpy[i] == 0 {
+                normalNum += customers[i]
+            }
+        }
+        maxNum = normalNum
+        var tempNum = normalNum
+        var i = 0
+        while i < grumpy.count - X + 1 {
+            if i == 0 {
+                for j in i..<i+X {
+                    if grumpy[j] == 1 {
+                        tempNum += customers[j]
+                    }
+                }
+            } else {
+                if grumpy[i-1] == 1 {
+                    tempNum -= customers[i-1]
+                }
+                if grumpy[i+X-1] == 1 {
+                    tempNum += customers[i+X-1]
+                }
+            }
+            maxNum = max(maxNum, tempNum)
+            i += 1
+        }
+        
+        return maxNum
+    }
     
 }
 let SL = Solution()
+
 
 
 
