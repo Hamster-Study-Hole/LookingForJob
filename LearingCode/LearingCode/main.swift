@@ -556,6 +556,233 @@ class Solution {
         return result
     }
     
+    // MARK: 17.电话号码的字母组合
+    // 给定一个仅包含数字 2-9 的字符串，返回所有它能表示的字母组合。答案可以按 任意顺序 返回。
+    func letterCombinations(_ digits: String) -> [String] {
+        //写法有点丑陋,感觉有优化空间
+        if digits.count == 0 {
+            return []
+        }
+        let numMap: [Character: [Character]] = ["2": ["a", "b", "c"],
+                                                "3": ["d", "e", "f"],
+                                                "4": ["g", "h", "i"],
+                                                "5": ["j", "k", "l"],
+                                                "6": ["m", "n", "o"],
+                                                "7": ["p", "q", "r", "s"],
+                                                "8": ["t", "u", "v"],
+                                                "9": ["w", "x", "y", "z"]]
+        let list = Array(digits)
+        var result: [[Character]] = [[]]
+        for i in 0..<list.count {
+            let count = numMap[list[i]]?.count ?? 0
+            let temp = result
+            if count > 0 {
+                for _ in 1..<count {
+                    result += temp
+                }
+            }
+            for k in 0..<count {
+                for l in 0..<temp.count {
+                    result[l+k*temp.count].append(numMap[list[i]]![k])
+                }
+            }
+        }
+        return result.map({ return String($0) })
+    }
+    
+    // MARK: 18.四数之和
+    // 给定一个包含 n 个整数的数组 nums 和一个目标值 target，判断 nums 中是否存在四个元素 a，b，c 和 d ，
+    // 使得 a + b + c + d 的值与 target 相等？找出所有满足条件且不重复的四元组。
+    func fourSum(_ nums: [Int], _ target: Int) -> [[Int]] {
+        // 三数之和之上又套了一层,应该有简单方法吧,不然算一百数之和是不是会爆炸
+        if nums.count < 4 {
+            return []
+        }
+        let nums = nums.sorted()
+        var result: [[Int]] = [], i = 0
+        while i < nums.count - 3 {
+            var j = i + 1
+            while j < nums.count - 2 {
+                var left = j + 1, right = nums.count - 1
+                while left < right {
+                    let sum = nums[i] + nums[j] + nums[left] + nums[right]
+                    if sum == target {
+                        result.append([nums[i], nums[j], nums[left], nums[right]])
+                        left += 1
+                        right -= 1
+                        while left < right, nums[left] == nums[left-1] {
+                            left += 1
+                        }
+                        while left < right, nums[right] == nums[right+1] {
+                            right -= 1
+                        }
+                    } else if sum > target {
+                        right -= 1
+                    } else {
+                        left += 1
+                    }
+                }
+                j += 1
+                while j < nums.count - 2, nums[j] == nums[j-1] {
+                    j += 1
+                }
+            }
+            i += 1
+            while i < nums.count - 3, nums[i] == nums[i-1] {
+                i += 1
+            }
+        }
+        return result
+    }
+    
+    // MARK: 19.删除链表的倒数第 N 个结点
+    // 给你一个链表，删除链表的倒数第 n 个结点，并且返回链表的头结点。
+    func removeNthFromEnd(_ head: ListNode?, _ n: Int) -> ListNode? {
+        //用数组取巧了一下,面试的时候应该不让
+        let temp = ListNode(0, head)
+        var head = head
+        var list: [ListNode] = []
+        list.append(temp)
+        while head != nil {
+            list.append(head!)
+            head = head?.next
+        }
+        let nextNode = list[list.count-n].next
+        list[list.count-n-1].next = nextNode
+        return temp.next
+    }
+    func removeNthFromEnd1(_ head: ListNode?, _ n: Int) -> ListNode? {
+        //这可能是面试要的双指针吧,但是效率并不高啊
+        let temp: ListNode? = ListNode(0, head)
+        var p1 = head, p2 = temp
+        for _ in 0..<n {
+            p1 = p1?.next
+        }
+        while p1 != nil {
+            p1 = p1?.next
+            p2 = p2?.next
+        }
+        p2?.next = p2?.next?.next
+        return temp?.next
+    }
+    
+    // MARK: 20. 有效的括号
+    // 给定一个只包括 '('，')'，'{'，'}'，'['，']' 的字符串 s ，判断字符串是否有效。
+    // 有效字符串需满足：左括号必须用相同类型的右括号闭合。左括号必须以正确的顺序闭合。
+    func isValid(_ s: String) -> Bool {
+        if s.count == 0 {
+            return true
+        }
+        if s.count % 2 != 0 {
+            return false
+        }
+        let map: [Character: Character] = [")": "(", "}": "{", "]": "["]
+        var cList: [Character] = []
+        for c in s {
+            if map.values.contains(c) {
+                cList.append(c)
+            } else if map.keys.contains(c) {
+                if cList.last == map[c] {
+                    cList.removeLast()
+                } else {
+                    return false
+                }
+            }
+        }
+        if cList.count > 0 {
+            return false
+        }
+        return true
+    }
+    
+    // MARK: 21. 合并两个有序链表
+    // 将两个升序链表合并为一个新的 升序 链表并返回。新链表是通过拼接给定的两个链表的所有节点组成的。
+    func mergeTwoLists(_ l1: ListNode?, _ l2: ListNode?) -> ListNode? {
+        var temp: ListNode? = ListNode(-1)
+        let result = temp
+        var l1 = l1, l2 = l2
+        while l1 != nil, l2 != nil {
+            if l1!.val < l2!.val {
+                temp?.next = l1
+                temp = l1
+                l1 = l1?.next
+            } else {
+                temp?.next = l2
+                temp = l2
+                l2 = l2?.next
+            }
+        }
+        if l1 != nil {
+            temp?.next = l1
+        }
+        if l2 != nil {
+            temp?.next = l2
+        }
+        
+        return result?.next
+    }
+    
+    // MARK: 22. 括号生成
+    // 数字 n 代表生成括号的对数，请你设计一个函数，用于能够生成所有可能的并且 有效的 括号组合。
+    func generateParenthesis(_ n: Int) -> [String] {
+        if n == 0 {
+            return []
+        }
+        var list: [String] = []
+        func generateStr(_ str: String, _ m: Int) {
+            if m == 0 {
+                //这里验证取巧了,用的上面的第20题
+                if isValid(str) {
+                    list.append(str)
+                }
+                return
+            }
+            var i = 0, j = 0
+            for c in str {
+                if c == "(" {
+                    i += 1
+                }
+                if c == ")" {
+                    j += 1
+                }
+            }
+            if i > n || j > n {
+                return
+            }
+            generateStr(str + "(", m - 1)
+            generateStr(str + ")", m - 1)
+        }
+        generateStr("", n * 2)
+        return list
+    }
+    
+    // MARK: 23. 合并K个升序链表
+    // 给你一个链表数组，每个链表都已经按升序排列。请你将所有链表合并到一个升序链表中，返回合并后的链表。
+    func mergeKLists(_ lists: [ListNode?]) -> ListNode? {
+        if lists.count == 0 {
+            return nil
+        }
+        if lists.count == 1 {
+            return lists[0]
+        }
+        var result = lists
+        while result.count != 1 {
+            //这里需要做下二分,不然会超时,下面用了上面的21题
+            var left = 0, right = result.count-1
+            var temp: [ListNode?] = []
+            while left < right {
+                temp.append(mergeTwoLists(result[left], result[right]))
+                left += 1
+                right -= 1
+                if left == right {
+                    temp.append(result[left])
+                }
+            }
+            result = temp
+        }
+        return result[0]
+    }
+    
     // MARK: 766.托普利茨矩阵
     // 给你一个 m x n 的矩阵 matrix 。如果这个矩阵是托普利茨矩阵，返回 true ；否则，返回 false 。
     // 如果矩阵上每一条由左上到右下的对角线上的元素都相同，那么这个矩阵是 托普利茨矩阵 。
@@ -617,6 +844,7 @@ class Solution {
     
 }
 let SL = Solution()
+SL.mergeKLists([ListNode(1, ListNode(2, ListNode(3))), ListNode(4, ListNode(5, ListNode(6, ListNode(7))))])
 
 
 
