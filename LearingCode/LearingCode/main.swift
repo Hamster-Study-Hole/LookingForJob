@@ -783,6 +783,99 @@ class Solution {
         return result[0]
     }
     
+    // MARK: 24.两两交换链表中的节点
+    // 给定一个链表，两两交换其中相邻的节点，并返回交换后的链表。
+    // 你不能只是单纯的改变节点内部的值，而是需要实际的进行节点交换。
+    func swapPairs(_ head: ListNode?) -> ListNode? {
+        let result: ListNode? = ListNode(-1)
+        var p1 = head, p2 = head?.next, pre = result
+        if p2 == nil {
+            return p1
+        }
+        while p1 != nil, p2 != nil {
+            pre?.next = p2
+            let next = p2?.next
+            p2?.next = p1
+            p1?.next = next
+            pre = p1
+            p1 = next
+            p2 = next?.next
+        }
+        return result?.next
+    }
+    
+    // MARK: 25.K 个一组翻转链表
+    // 给你一个链表，每 k 个节点一组进行翻转，请你返回翻转后的链表。
+    // k 是一个正整数，它的值小于或等于链表的长度。
+    // 如果节点总数不是 k 的整数倍，那么请将最后剩余的节点保持原有顺序。
+    func reverseKGroup(_ head: ListNode?, _ k: Int) -> ListNode? {
+        if k <= 1 {
+            return head
+        }
+        func reverseNode(_ head: ListNode?) -> ListNode? {
+            var head = head, result: ListNode? = nil
+            while head != nil {
+                let next = head?.next
+                head?.next = result
+                result = head
+                head = next
+            }
+            return result
+        }
+        var head = head, result: ListNode? = ListNode(-1, head), pre = result, start = head, i = 0
+        while head != nil {
+            i += 1
+            if i == k {
+                let next = head?.next
+                head?.next = nil
+                pre?.next = reverseNode(start)
+                start?.next = next
+                pre = start
+                head = next
+                start = head
+                i = 0
+            } else {
+                head = head?.next
+            }
+        }
+        
+        return result?.next
+    }
+    
+    // MARK: 26.删除排序数组中的重复项
+    // 给定一个排序数组，你需要在 原地 删除重复出现的元素，使得每个元素只出现一次，返回移除后数组的新长度。
+    //不要使用额外的数组空间，你必须在 原地 修改输入数组 并在使用 O(1) 额外空间的条件下完成。
+    func removeDuplicates(_ nums: inout [Int]) -> Int {
+        let count = nums.count
+        if count <= 1 {
+            return count
+        }
+        var i = 0
+        for j in 0..<count {
+            if nums[j] != nums[i] {
+                i += 1
+                nums[i] = nums[j]
+            }
+        }
+        return i + 1
+    }
+    
+    // MARK: 27. 移除元素
+    // 给你一个数组 nums 和一个值 val，你需要 原地 移除所有数值等于 val 的元素，并返回移除后数组的新长度。
+    // 不要使用额外的数组空间，你必须仅使用 O(1) 额外空间并 原地 修改输入数组。
+    //元素的顺序可以改变。你不需要考虑数组中超出新长度后面的元素。
+    func removeElement(_ nums: inout [Int], _ val: Int) -> Int {
+        var i = 0, j = 0
+        while i < nums.count {
+            if nums[i] != val {
+                nums[j] = nums[i]
+                j += 1
+            }
+            i += 1
+        }
+        return j
+    }
+    
     // MARK: 766.托普利茨矩阵
     // 给你一个 m x n 的矩阵 matrix 。如果这个矩阵是托普利茨矩阵，返回 true ；否则，返回 false 。
     // 如果矩阵上每一条由左上到右下的对角线上的元素都相同，那么这个矩阵是 托普利茨矩阵 。
@@ -800,6 +893,31 @@ class Solution {
             }
         }
         return true
+    }
+    
+    // MARK: 832. 翻转图像
+    // 给定一个二进制矩阵 A，我们想先水平翻转图像，然后反转图像并返回结果。
+    // 水平翻转图片就是将图片的每一行都进行翻转，即逆序。例如，水平翻转 [1, 1, 0] 的结果是 [0, 1, 1]。
+    // 反转图片的意思是图片中的 0 全部被 1 替换， 1 全部被 0 替换。例如，反转 [0, 1, 1] 的结果是 [1, 0, 0]。
+    func flipAndInvertImage(_ A: [[Int]]) -> [[Int]] {
+        var result: [[Int]] = []
+        let map: [Int: Int] = [1: 0, 0: 1]
+        for l in A {
+            var temp = l
+            var left = 0, right = temp.count - 1
+            while left <= right {
+                temp.swapAt(left, right)
+                temp[left] = map[temp[left]]!
+                temp[right] = map[temp[right]]!
+                left += 1
+                right -= 1
+            }
+            if left == right {
+                temp[left] = map[temp[left]]!
+            }
+            result.append(temp)
+        }
+        return result
     }
     
     // MARK: 1052. 爱生气的书店老板
@@ -844,8 +962,7 @@ class Solution {
     
 }
 let SL = Solution()
-SL.mergeKLists([ListNode(1, ListNode(2, ListNode(3))), ListNode(4, ListNode(5, ListNode(6, ListNode(7))))])
-
+SL.reverseKGroup(ListNode(1, ListNode(2, ListNode(3, ListNode(4, ListNode(5))))), 2)
 
 
 
