@@ -876,6 +876,301 @@ class Solution {
         return j
     }
     
+    // MARK: 28. 实现 strStr()
+    // 实现 strStr() 函数。
+    // 给定一个 haystack 字符串和一个 needle 字符串，在 haystack 字符串中找出 needle 字符串出现的第一个位置 (从0开始)。如果不存在，则返回  -1。
+    func strStr(_ haystack: String, _ needle: String) -> Int {
+        if needle.count == 0 {
+            return 0
+        }
+        let count1 = haystack.count, count2 = needle.count
+        if count2 > count1 {
+            return -1
+        }
+        let list1 = Array(haystack), list2 = Array(needle)
+        var temp: [Character] = []
+        for i in 0...count1 - count2 {
+            if i == 0 {
+                temp = Array(list1[0..<count2])
+            } else {
+                temp.removeFirst()
+                temp.append(list1[i + count2-1])
+            }
+            if temp == list2 {
+                return i
+            }
+        }
+        return -1
+        
+    }
+    
+    // MARK: 29. 两数相除
+    // 给定两个整数，被除数 dividend 和除数 divisor。将两数相除，要求不使用乘法、除法和 mod 运算符。
+    // 返回被除数 dividend 除以除数 divisor 得到的商。
+    // 整数除法的结果应当截去（truncate）其小数部分，例如：truncate(8.345) = 8 以及 truncate(-2.7335) = -2
+    func divide(_ dividend: Int, _ divisor: Int) -> Int {
+        var isNegative = false, absDividend = abs(dividend), absDivisor = abs(divisor)
+        if !((dividend > 0 && divisor > 0) || (dividend < 0 && divisor < 0)) {
+            isNegative = true
+        }
+        var sum = 0, temp = 1
+        while absDividend >= absDivisor {
+            absDividend -= absDivisor
+            sum += temp
+            temp += temp
+            if absDividend < absDivisor + absDivisor {
+                absDivisor = abs(divisor)
+                temp = 1
+            } else {
+                absDivisor += absDivisor
+            }
+        }
+        if isNegative {
+            if 0 - sum < Int32.min {
+                return Int(Int32.min)
+            }
+            return 0 - sum
+            
+        } else {
+            if sum > Int32.max {
+                return Int(Int32.max)
+            }
+            return sum
+        }
+    }
+    
+    // MARK: 30.串联所有单词的子串
+    // 给定一个字符串 s 和一些长度相同的单词 words。找出 s 中恰好可以由 words 中所有单词串联形成的子串的起始位置。
+    // 注意子串要与 words 中的单词完全匹配，中间不能有其他字符，但不需要考虑 words 中单词串联的顺序。
+    func findSubstring(_ s: String, _ words: [String]) -> [Int] {
+        var sumCount = 0, wordCount = words[0].count, result: [Int] = [], map: [String: Int] = [:]
+        for word in words {
+            if map[word] != nil {
+                map[word]! += 1
+            } else {
+                map[word] = 1
+            }
+            sumCount += word.count
+        }
+        if sumCount > s.count {
+            return []
+        }
+        let list = Array(s)
+        var currentList: [Character] = [], i = 0
+        var tempMap: [String: Int] = [:]
+        while i <= list.count - sumCount {
+            if i == 0 {
+                currentList = Array(list[i..<i+sumCount])
+            } else {
+                currentList.removeFirst()
+                currentList.append(list[i + sumCount - 1])
+            }
+            let tempStr = String(list[i..<i+wordCount])
+            if map[tempStr] == nil {
+                i += 1
+                continue
+            }
+           
+            tempMap.removeAll()
+            for j in 0..<words.count {
+                let str = String(currentList[j * wordCount..<(j + 1) * wordCount])
+                if tempMap[str] == map[str] {
+                    break
+                }
+                if tempMap[str] != nil {
+                    tempMap[str]! += 1
+                } else {
+                    tempMap[str] = 1
+                }
+            }
+            if tempMap == map {
+                result.append(i)
+            }
+            i += 1
+        }
+        
+        return result
+    }
+    
+    // MARK: 31.实现获取 下一个排列 的函数，算法需要将给定数字序列重新排列成字典序中下一个更大的排列。
+    // 如果不存在下一个更大的排列，则将数字重新排列成最小的排列（即升序排列）。
+    // 必须 原地 修改，只允许使用额外常数空间。
+    func nextPermutation(_ nums: inout [Int]) {
+        var i = nums.count - 2
+        while i >= 0 && nums[i] >= nums[i+1] {
+            i -= 1
+        }
+        var left = 0, right = nums.count - 1
+        //如果不是纯倒序排列的,i>=0,倒序找到第一个小数跟后面比他大的第一个数进行交换,这样高位的数就变大了,后面的段保留着降序排列,然后反转一下
+        if i >= 0 {
+            var j = nums.count - 1
+            while j >= 0 {
+                if nums[j] > nums[i] {
+                    nums.swapAt(j, i)
+                    left = i + 1
+                    break
+                }
+                j -= 1
+            }
+        }
+        while left < right {
+            nums.swapAt(left, right)
+            left += 1
+            right -= 1
+        }
+    }
+    
+    // MARK: 32.最长有效括号
+    // 给你一个只包含 '(' 和 ')' 的字符串，找出最长有效（格式正确且连续）括号子串的长度。
+    func longestValidParentheses(_ s: String) -> Int {
+        if s.count < 2 {
+            return 0
+        }
+        let list = Array(s)
+        var maxCount = 0, count = 0, effectiveList = Array(repeating: 0, count: list.count), i = 0, leftLocationList: [Int] = []
+        //记录不成对的")"位置
+        while i < list.count {
+            if list[i] == "(" {
+                leftLocationList.append(i)
+            } else {
+                if leftLocationList.count == 0 {
+                    effectiveList[i] = 1
+                } else {
+                    leftLocationList.removeLast()
+                }
+            }
+            i += 1
+        }
+        //记录不成对的"("位置
+        for i in leftLocationList {
+            effectiveList[i] = 1
+        }
+        i = 0
+        //遍历最长成对段
+        while i < effectiveList.count {
+            if effectiveList[i] == 1 {
+                maxCount = max(maxCount, count)
+                count = 0
+            } else {
+                count += 1
+            }
+            i += 1
+        }
+        maxCount = max(maxCount, count)
+        
+        return maxCount
+        
+    }
+    
+    // MARK: 33.搜索旋转排序数组
+    // 整数数组 nums 按升序排列，数组中的值 互不相同 。
+    // 在传递给函数之前，nums 在预先未知的某个下标 k（0 <= k < nums.length）上进行了 旋转，使数组变为
+    // [nums[k], nums[k+1], ..., nums[n-1], nums[0], nums[1], ..., nums[k-1]]（下标 从 0 开始 计数）。
+    // 例如， [0,1,2,4,5,6,7] 在下标 3 处经旋转后可能变为 [4,5,6,7,0,1,2] 。
+    // 给你 旋转后 的数组 nums 和一个整数 target ，如果 nums 中存在这个目标值 target ，则返回它的索引，否则返回 -1 。
+    func search(_ nums: [Int], _ target: Int) -> Int {
+        if nums[0] > target {
+            for i in (0..<nums.count).reversed() {
+                if nums[i] < target {
+                    return -1
+                } else if nums[i] == target {
+                    return i
+                }
+            }
+        } else {
+            for i in 0..<nums.count {
+                if nums[i] > target {
+                    return -1
+                } else if nums[i] == target {
+                    return i
+                }
+            }
+        }
+        return -1
+    }
+    
+    // MARK: 34. 在排序数组中查找元素的第一个和最后一个位置
+    // 给定一个按照升序排列的整数数组 nums，和一个目标值 target。找出给定目标值在数组中的开始位置和结束位置。
+    // 如果数组中不存在目标值 target，返回 [-1, -1]。
+    func searchRange(_ nums: [Int], _ target: Int) -> [Int] {
+        if nums.count == 0 {
+            return [-1, -1]
+        }
+        if nums[0] > target || nums[nums.count-1] < target {
+            return [-1, -1]
+        }
+        var left = 0, right = nums.count - 1
+        while left <= right {
+            if nums[left] == target && nums[right] == target {
+                return [left, right]
+            }
+            if nums[left] < target {
+                left += 1
+            }
+            if nums[right] > target {
+                right -= 1
+            }
+        }
+        return [-1, -1]
+    }
+    
+    func searchRange1(_ nums: [Int], _ target: Int) -> [Int] {
+        if nums.count == 0 {
+            return [-1, -1]
+        }
+        if nums[0] > target || nums[nums.count-1] < target {
+            return [-1, -1]
+        }
+        var left = 0, right = nums.count - 1
+        while left < right {
+            let middle = (left + right) / 2
+            if nums[middle] > target {
+                right = middle - 1
+            } else if nums[middle] < target {
+                left = middle + 1
+            } else {
+                left = middle
+                right = middle
+                while left > 0, nums[left] == nums[left - 1] {
+                    left -= 1
+                }
+                while right < nums.count - 1, nums[right] == nums[right + 1] {
+                    right += 1
+                }
+                return [left, right]
+            }
+        }
+        return [-1, -1]
+    }
+    
+    // MARK: 395.至少有K个重复字符的最长子串
+    // 找到给定字符串（由小写字符组成）中的最长子串 T ， 要求 T 中的每一字符出现次数都不少于 k 。输出 T 的长度。
+    func longestSubstring(_ s: String, _ k: Int) -> Int {
+        var map: [Character: Int] = [:], maxCount = 0, i = 0
+        for c in s {
+            if map[c] == nil {
+                map[c] = 1
+            } else {
+                map[c]! += 1
+            }
+        }
+        let conformList = map.keys.filter( {return map[$0]! >= k} ), list = Array(s)
+        while i < list.count {
+            if !conformList.contains(list[i]) {
+                let temp = i
+                while i < list.count, !conformList.contains(list[i]) {
+                    i += 1
+                }
+                i -= 1
+                return max(longestSubstring(String(list[0..<temp]), k), longestSubstring(String(list[i+1..<list.count]), k))
+            } else {
+                maxCount += 1
+                i += 1
+            }
+        }
+        return maxCount
+    }
+    
     // MARK: 766.托普利茨矩阵
     // 给你一个 m x n 的矩阵 matrix 。如果这个矩阵是托普利茨矩阵，返回 true ；否则，返回 false 。
     // 如果矩阵上每一条由左上到右下的对角线上的元素都相同，那么这个矩阵是 托普利茨矩阵 。
@@ -920,6 +1215,44 @@ class Solution {
         return result
     }
     
+    // MARK: 867. 转置矩阵
+    // 给你一个二维整数数组 matrix， 返回 matrix 的 转置矩阵 。
+    // 矩阵的 转置 是指将矩阵的主对角线翻转，交换矩阵的行索引与列索引。
+    func transpose(_ matrix: [[Int]]) -> [[Int]] {
+        let m = matrix.count, n = matrix[0].count
+        var result:[[Int]] = Array(repeating: Array(repeating: 0, count: m), count: n)
+        for i in 0..<m {
+            for j in 0..<n {
+                result[j][i] = matrix[i][j]
+            }
+        }
+        return result
+    }
+    
+    // MARK: 896.单调数列
+    // 如果数组是单调递增或单调递减的，那么它是单调的。当给定的数组 A 是单调数组时返回 true，否则返回 false。
+    func isMonotonic(_ A: [Int]) -> Bool {
+        if A.count < 2 { return true }
+        let first = A[0], last = A[A.count - 1]
+        //是否升序
+        var isUp = true
+        if first > last {
+            isUp = false
+        }
+        for i in 0..<A.count-1 {
+            if isUp {
+                if A[i] > A[i+1] {
+                    return false
+                }
+            } else {
+                if A[i] < A[i+1] {
+                    return false
+                }
+            }
+        }
+        return true
+    }
+    
     // MARK: 1052. 爱生气的书店老板
     // 今天，书店老板有一家店打算试营业 customers.length 分钟。每分钟都有一些顾客（customers[i]）会进入书店，
     // 所有这些顾客都会在那一分钟结束后离开。在某些时候，书店老板会生气。 如果书店老板在第 i 分钟生气，那么 grumpy[i] = 1，
@@ -962,7 +1295,9 @@ class Solution {
     
 }
 let SL = Solution()
-SL.reverseKGroup(ListNode(1, ListNode(2, ListNode(3, ListNode(4, ListNode(5))))), 2)
+SL.searchRange1([2,2], 2)
+
+
 
 
 
