@@ -1143,6 +1143,210 @@ class Solution {
         return [-1, -1]
     }
     
+    // MARK: 35.搜索插入位置
+    // 给定一个排序数组和一个目标值，在数组中找到目标值，并返回其索引。如果目标值不存在于数组中，返回它将会被按顺序插入的位置。
+    func searchInsert(_ nums: [Int], _ target: Int) -> Int {
+        for i in 0..<nums.count {
+            if nums[i] >= target {
+                return i
+            }
+        }
+        return nums.count
+    }
+    
+    // MARK: 36.有效的数独
+    // 判断一个 9x9 的数独是否有效。只需要根据以下规则，验证已经填入的数字是否有效即可。
+    // 数字 1-9 在每一行只能出现一次。
+    // 数字 1-9 在每一列只能出现一次。
+    // 数字 1-9 在每一个以粗实线分隔的 3x3 宫内只能出现一次。
+    func isValidSudoku(_ board: [[Character]]) -> Bool {
+        for i in 0..<9 {
+            var map: [Character: Int] = [:]
+            for j in 0..<9 {
+                if board[i][j] != "." {
+                    if map[board[i][j]] == nil {
+                        map[board[i][j]] = 1
+                    } else {
+                        return false
+                    }
+                }
+            }
+            map = [:]
+            for k in 0..<9 {
+                if board[k][i] != "." {
+                    if map[board[k][i]] == nil {
+                        map[board[k][i]] = 1
+                    } else {
+                        return false
+                    }
+                }
+            }
+            map = [:]
+            for l in i/3*3..<i/3*3+3 {
+                for m in i%3*3..<i%3*3+3 {
+                    if board[l][m] != "." {
+                        if map[board[l][m]] == nil {
+                            map[board[l][m]] = 1
+                        } else {
+                            return false
+                        }
+                    }
+                }
+            }
+            
+        }
+        return true
+    }
+    
+    // MARK: 37.解数独
+    // 编写一个程序，通过填充空格来解决数独问题。
+    func solveSudoku(_ board: inout [[Character]]) {
+        var rowList: [Set<Character>] = []
+        var colList: [Set<Character>] = Array(repeating: [], count: 9)
+        for i in 0..<board.count {
+            var set: Set<Character> = []
+            for j in 0..<board[0].count {
+                if board[i][j] != "." {
+                    set.insert(board[i][j])
+                    colList[j].insert(board[i][j])
+                }
+            }
+            rowList.append(set)
+        }
+        dfs(&board, rowList: &rowList, colList: &colList, start: 0)
+    }
+    func dfs(_ board: inout [[Character]], rowList: inout [Set<Character>], colList: inout [Set<Character>], start: Int) -> Bool {
+        for i in start..<board.count {
+            for j in 0..<board[0].count {
+                if board[i][j] != "." {
+                    continue
+                }
+                for k in 1...9 {
+                    let c = Character("\(k)")
+                    if rowList[i].contains(c) || colList[j].contains(c) {
+                        continue
+                    }
+                    board[i][j] = c
+                    rowList[i].insert(c)
+                    colList[j].insert(c)
+                    //这个数独的验证走的上面的方法,但是有点复杂了,会超时,把验证方法里面的前两个横竖验证注释之后可以通过,横竖校验已经走了
+                    //rowList, colList的校验了
+                    if isValidSudoku(board), dfs(&board, rowList: &rowList, colList: &colList, start: i) {
+                        return true
+                    } else {
+                        board[i][j] = "."
+                        rowList[i].remove(c)
+                        colList[j].remove(c)
+                    }
+                }
+                return false
+            }
+        }
+        return true
+    }
+    
+    // MARK: 38. 外观数列
+    // 给定一个正整数 n ，输出外观数列的第 n 项。「外观数列」是一个整数序列，从数字 1 开始，序列中的每一项都是对前一项的描述。
+    // 你可以将其视作是由递归公式定义的数字字符串序列：
+    func countAndSay(_ n: Int) -> String {
+        if n == 1 {
+            return "1"
+        }
+        var result: String = ""
+        let s = countAndSay(n - 1)
+        let list = Array(s)
+        var count = 0, c: Character = "0"
+        for l in list {
+            if c != l {
+                if count > 0 {
+                    result.append("\(count)\(c)")
+                }
+                count = 1
+                c = l
+            } else {
+                count += 1
+            }
+        }
+        if count > 0 {
+            result.append("\(count)\(c)")
+        }
+        return result
+    }
+    
+    // MARK: 39. 组合总和
+    // 给定一个无重复元素的数组 candidates 和一个目标数 target ，找出 candidates 中所有可以使数字和为 target 的组合。
+    // candidates 中的数字可以无限制重复被选取。
+    // 所有数字（包括 target）都是正整数。解集不能包含重复的组合。
+    func combinationSum(_ candidates: [Int], _ target: Int) -> [[Int]] {
+        //这里是拿set做了个去重操作,不优雅
+        var result: Set<[Int]> = []
+        combination(&result, candidates: candidates, target: target, currentList: [], k: 0)
+        return Array(result)
+    }
+    func combination(_ result: inout Set<[Int]>, candidates: [Int], target: Int, currentList: [Int], k: Int) {
+        var sum = 0
+        for i in currentList {
+            sum += i
+        }
+        var list = currentList
+        if k > 0 {
+            sum += k
+            list.append(k)
+        }
+        if sum == target {
+            list.sort()
+            result.insert(list)
+        } else if sum > target {
+            return
+        } else {
+            for c in candidates {
+                combination(&result, candidates: candidates, target: target, currentList: list, k: c)
+            }
+        }
+    }
+    
+    // MARK: 338.比特位计数
+    // 给定一个非负整数 num。对于 0 ≤ i ≤ num 范围中的每个数字 i ，计算其二进制数中的 1 的数目并将它们作为数组返回。
+    func countBits(_ num: Int) -> [Int] {
+        if num == 0 {
+            return [0]
+        }
+        var result: [Int] = Array(repeating: 0, count: num + 1)
+        for i in 1...num {
+            result[i] = result[i & (i-1)] + 1
+        }
+        return result
+    }
+    
+    // MARK: 354. 俄罗斯套娃信封问题
+    // 给定一些标记了宽度和高度的信封，宽度和高度以整数对形式 (w, h) 出现。
+    // 当另一个信封的宽度和高度都比这个信封大的时候，这个信封就可以放进另一个信封里，如同俄罗斯套娃一样。
+    // 请计算最多能有多少个信封能组成一组“俄罗斯套娃”信封（即可以把一个信封放到另一个信封里面）。
+    func maxEnvelopes(_ envelopes: [[Int]]) -> Int {
+        let envelopes = envelopes.sorted { (list1, list2) -> Bool in
+            if list1[0] == list2[0] {
+                return list1[1] > list2[1]
+            } else {
+                return list1[0] < list2[0]
+            }
+        }
+        let list = envelopes.map { (list) -> Int in
+            return list[1]
+        }
+        //上面的操作是把两维数组做了个降维操作,以w为主排序字段升序排列, h为副排序字段降序排列,保证同等宽的信封不会被重复取值,下面的逻辑还没看懂...
+        var tempList = Array(repeating: 1, count: list.count)
+        var maxCount = 0
+        for i in 0..<list.count {
+            for j in 0..<i {
+                if list[i] > list[j] {
+                    tempList[i] = max(tempList[i], tempList[j] + 1)
+                }
+            }
+            maxCount = max(maxCount, tempList[i])
+        }
+        return maxCount
+    }
+    
     // MARK: 395.至少有K个重复字符的最长子串
     // 找到给定字符串（由小写字符组成）中的最长子串 T ， 要求 T 中的每一字符出现次数都不少于 k 。输出 T 的长度。
     func longestSubstring(_ s: String, _ k: Int) -> Int {
@@ -1294,9 +1498,76 @@ class Solution {
     }
     
 }
-let SL = Solution()
-SL.searchRange1([2,2], 2)
 
+// MARK: 303.区域和检索 - 数组不可变
+// 给定一个整数数组  nums，求出数组从索引 i 到 j（i ≤ j）范围内元素的总和，包含 i、j 两点。
+// 实现 NumArray 类：NumArray(int[] nums) 使用数组 nums 初始化对象
+// int sumRange(int i, int j) 返回数组 nums 从索引 i 到 j（i ≤ j）范围内元素的总和，包含 i、j 两点（也就是 sum(nums[i], nums[i + 1], ... , nums[j])）
+//输入：["NumArray", "sumRange", "sumRange", "sumRange"] [[[-2, 0, 3, -5, 2, -1]], [0, 2], [2, 5], [0, 5]]
+// 输出：
+// [null, 1, -1, -3]
+class NumArray {
+    var nums: [Int] = []
+    init(_ nums: [Int]) {
+        self.nums = nums
+    }
+    func sumRange(_ i: Int, _ j: Int) -> Int {
+        var sum = 0, left = i, right = j
+        while left < right {
+            sum += nums[left]
+            sum += nums[right]
+            left += 1
+            right -= 1
+        }
+        if left == right {
+            sum += nums[left]
+        }
+        return sum
+    }
+}
+
+// MARK: 304. 二维区域和检索 - 矩阵不可变
+// 给定一个二维矩阵，计算其子矩形范围内元素的总和，该子矩阵的左上角为 (row1, col1) ，右下角为 (row2, col2)。
+class NumMatrix {
+    var result: [[Int]] = []
+    init(_ matrix: [[Int]]) {
+        result = Array(repeating: Array(repeating: 0, count: matrix.first?.count ?? 0), count: matrix.count)
+        for i in 0..<matrix.count {
+            for j in 0..<matrix[0].count {
+                if i == 0 && j == 0 {
+                    result[0][0] = matrix[0][0]
+                } else if i == 0 {
+                    result[0][j] = result[0][j-1] + matrix[0][j]
+                } else if j == 0 {
+                    result[i][0] = result[i-1][0] + matrix[i][0]
+                } else {
+                    result[i][j] = result[i-1][j] + result[i][j-1] - result[i-1][j-1] + matrix[i][j]
+                }
+            }
+        }
+    }
+    
+    func sumRegion(_ row1: Int, _ col1: Int, _ row2: Int, _ col2: Int) -> Int {
+        var sum = 0
+        sum += result[row2][col2]
+        if row1 > 0 {
+            sum -= result[row1 - 1][col2]
+        }
+        if col1 > 0 {
+            sum -= result[row2][col1 - 1]
+        }
+        if row1 > 0, col1 > 0 {
+            sum += result[row1 - 1][col1-1]
+        }
+        return sum
+    }
+}
+
+let SL = Solution()
+//var list: [[Character]] = [["5","3","4","6","7","8","9","1","2"],["6","7","2","1","9","5","3","4","8"],["1","9","8","3","4","2","5","6","7"],["8","5","9","7","6","1","4","2","3"],["4","2","6","8","5","3","7","9","1"],["7","1","3","9","2","4","8","5","6"],["9","6","1","5","3","7","2","8","4"],["2","8","7","4","1","9","6","3","5"],[".",".",".",".","8",".",".","7","9"]]
+var list: [[Character]] = [[".",".",".",".",".","7",".",".","9"],[".","4",".",".","8","1","2",".","."],[".",".",".","9",".",".",".","1","."],[".",".","5","3",".",".",".","7","2"],["2","9","3",".",".",".",".","5","."],[".",".",".",".",".","5","3",".","."],["8",".",".",".","2","3",".",".","."],["7",".",".",".","5",".",".","4","."],["5","3","1",".","7",".",".",".","."]]
+
+SL.solveSudoku(&list)
 
 
 
