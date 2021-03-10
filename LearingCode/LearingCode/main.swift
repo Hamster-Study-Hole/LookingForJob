@@ -1305,6 +1305,331 @@ class Solution {
         }
     }
     
+    // MARK: 40. 组合总和II
+    // 给定一个无重复元素的数组 candidates 和一个目标数 target ，找出 candidates 中所有可以使数字和为 target 的组合。
+    // candidates 中的每个数字在每个组合中只能使用一次。
+    func combinationSum2(_ candidates: [Int], _ target: Int) -> [[Int]] {
+        var result: Set<[Int]> = []
+        var sum = 0
+        for i in candidates {
+            sum += i
+        }
+        if sum < target {
+            return []
+        }
+        let candidates = candidates.sorted().filter( { return $0 <= target })
+        
+        combination2(&result, candidates: candidates, target: target, currentList: [], k: 0, sum: 0)
+        return Array(result)
+    }
+    func combination2(_ result: inout Set<[Int]>, candidates: [Int], target: Int, currentList: [Int], k: Int, sum: Int) {
+        var list = currentList
+        var sum = sum
+        if k > 0 {
+            sum += k
+            list.append(k)
+        }
+        
+        if sum == target {
+            result.insert(list)
+        } else if sum > target {
+            return
+        } else {
+            for i in 0..<candidates.count {
+                if candidates[i] + sum > target {
+                    return
+                }
+                let tempList = Array(candidates[i+1..<candidates.count])
+                combination2(&result, candidates: tempList, target: target, currentList: list, k: candidates[i], sum: sum)
+            }
+        }
+    }
+    
+    // MARK: 41. 缺失的第一个正数
+    // 给你一个未排序的整数数组 nums ，请你找出其中没有出现的最小的正整数。
+    // 进阶：你可以实现时间复杂度为 O(n) 并且只使用常数级别额外空间的解决方案吗(进阶的方案是数组原地做map标记,让各个整数回到该在的
+    // 索引位,可惜我不配)
+    func firstMissingPositive(_ nums: [Int]) -> Int {
+        var map: [Int: Int] = [:]
+        for num in nums {
+            map[num] = 1
+        }
+        var i = 1
+        while i > 0 {
+            if map[i] == nil {
+                return i
+            } else {
+                i += 1
+            }
+        }
+        return Int.max
+    }
+    
+    // MARK: 42. 接雨水
+    // 给定 n 个非负整数表示每个宽度为 1 的柱子的高度图，计算按此排列的柱子，下雨之后能接多少雨水。
+    // 找到最高的柱子的index,然后左右开始找不高于左右柱子为坑位进行雨水的累加,然后高于左右柱子更新左右柱子高度,然后找到最高index位置停止
+    func trap(_ height: [Int]) -> Int {
+        var sum = 0
+        if height.count <= 1 {
+            return sum
+        }
+        var left = 0, right = height.count - 1, maxHeightIndex = 0, maxHeight = 0, leftMaxHeight = 0, rightMaxHeight = 0
+        for i in 0..<height.count {
+            if height[i] > maxHeight {
+                maxHeight = height[i]
+                maxHeightIndex = i
+            }
+        }
+        while left < right {
+            if height[left] > leftMaxHeight {
+                leftMaxHeight = height[left]
+            } else {
+                sum += leftMaxHeight - height[left]
+            }
+            if left < maxHeightIndex {
+                left += 1
+            }
+            if height[right] > rightMaxHeight {
+                rightMaxHeight = height[right]
+            } else {
+                sum += rightMaxHeight - height[right]
+            }
+            if right > maxHeightIndex {
+                right -= 1
+            }
+        }
+        return sum
+    }
+    
+    // MARK: 43. 字符串相乘
+    // 给定两个以字符串形式表示的非负整数 num1 和 num2，返回 num1 和 num2 的乘积，它们的乘积也表示为字符串形式。
+    // 写起来就一直转啊转的,本来没什么东西,转的蛋疼
+    func multiply(_ num1: String, _ num2: String) -> String {
+        if num1 == "0" || num1 == "0" {
+            return "0"
+        }
+        func addNumStr(_ str1: String, _ str2: String) -> String {
+            let list1 = Array(Array(str1).reversed()), list2 = Array(Array(str2).reversed())
+            var i = 0, temp = 0, result = ""
+            while i < list1.count, i < list2.count {
+                let sum = (Int(String(list1[i])) ?? 0) + (Int(String(list2[i])) ?? 0) + temp
+                temp = sum / 10
+                result = "\(sum % 10)" + result
+                i += 1
+            }
+            while i < list1.count {
+                let sum = (Int(String(list1[i])) ?? 0) + temp
+                temp = sum / 10
+                result = "\(sum % 10)" + result
+                i += 1
+            }
+            while i < list2.count {
+                let sum = (Int(String(list2[i])) ?? 0) + temp
+                temp = sum / 10
+                result = "\(sum % 10)" + result
+                i += 1
+            }
+            if temp > 0 {
+                result = "\(temp)" + result
+            }
+            return result
+        }
+        var result = "0"
+        let list1 = Array(num1), list2 = Array(num2)
+        if num1.count < num2.count {
+            for i in (0..<list1.count).reversed() {
+                if list1[i] == "0" {
+                    continue
+                } else {
+                    var temp: Int = 0, str = ""
+                    for j in (0..<list2.count).reversed() {
+                        let num: Int = (Int(String(list1[i])) ?? 0) * (Int(String(list2[j])) ?? 0) + temp
+                        temp = num / 10
+                        str = "\(num % 10)" + str
+                    }
+                    if temp > 0 {
+                        str = "\(temp)" + str
+                    }
+                    for _ in i+1..<list1.count {
+                        str += "0"
+                    }
+                    result = addNumStr(result, str)
+                }
+            }
+        } else {
+            for i in (0..<list2.count).reversed() {
+                if list2[i] == "0" {
+                    continue
+                } else {
+                    var temp: Int = 0, str = ""
+                    for j in (0..<list1.count).reversed() {
+                        let num: Int = (Int(String(list2[i])) ?? 0) * (Int(String(list1[j])) ?? 0) + temp
+                        temp = num / 10
+                        str = "\(num % 10)" + str
+                    }
+                    if temp > 0 {
+                        str = "\(temp)" + str
+                    }
+                    for _ in i+1..<list2.count {
+                        str += "0"
+                    }
+                    result = addNumStr(result, str)
+                }
+            }
+            
+        }
+        return result
+    }
+    
+    // MARK: 44. 通配符匹配
+    // 给定一个字符串 (s) 和一个字符模式 (p) ，实现一个支持 '?' 和 '*' 的通配符匹配。
+    // '?' 可以匹配任何单个字符。'*' 可以匹配任意字符串（包括空字符串）。
+    // 两个字符串完全匹配才算匹配成功。
+    // s 可能为空，且只包含从 a-z 的小写字母。p 可能为空，且只包含从 a-z 的小写字母，以及字符 ? 和 *。(题解看的有点晕乎)
+    func isMatch2(_ s: String, _ p: String) -> Bool {
+        let list1 = Array(s), list2 = Array(p)
+        if list1.count == 0 {
+            if list2.filter( {return $0 != "*" }).count == 0 {
+                return true
+            }
+            return false
+        } else if list2.count == 0 {
+            return false
+        }
+        var result: [[Bool]] = Array(repeating: Array(repeating: false, count: list2.count+1), count: list1.count+1)
+        result[0][0] = true
+        for j in 1...list2.count {
+            result[0][j] = list2[j-1] == "*" && result[0][j-1]
+        }
+        for i in 1...list1.count {
+            for j in 1...list2.count {
+                if list1[i-1] == list2[j-1] || list2[j-1] == "?"  {
+                    result[i][j] = result[i-1][j-1]
+                } else if list2[j-1] == "*" && (result[i-1][j] || result[i][j-1]) {
+                    result[i][j] = true
+                }
+            }
+        }
+        return result[list1.count][list2.count]
+    }
+    
+    // MARK: 131.分割回文串
+    // 给定一个字符串 s，将 s 分割成一些子串，使每个子串都是回文串。返回 s 所有可能的分割方案。
+    // 回溯加动态规划,目前效率有点低,可以考虑怎么优化下
+    func partition(_ s: String) -> [[String]] {
+        // 判断是不是回文字符串
+        func isPalindromeStr(str: String) -> Bool {
+            let list = Array(str)
+            var left = 0, right = list.count - 1
+            while left < right {
+                if list[left] == list[right] {
+                    left += 1
+                    right -= 1
+                } else {
+                    return false
+                }
+            }
+            return true
+        }
+        if s.count == 0 {
+            return []
+        }
+        var result: [[String]] = []
+        
+        func dfsPartion(result: inout [[String]], s: String, strList: [String]) {
+            if s.count == 0 {
+                result.append(strList)
+            }
+            let list = Array(s)
+            for i in 0..<list.count {
+                let str = String(list[0..<(list.count - i)])
+                if isPalindromeStr(str: str) {
+                    let strList = strList + [str]
+                    dfsPartion(result: &result, s: String(list[list.count-i..<list.count]), strList: strList)
+                } else {
+                    continue
+                }
+            }
+        }
+        dfsPartion(result: &result, s: s, strList: [])
+        return result
+    }
+    
+    // MARK: 132.分割回文串 II
+    // 给你一个字符串 s，请你将 s 分割成一些子串，使每个子串都是回文。返回符合要求的 最少分割次数 。
+    // 复杂度过不了,倒数第二个用例老是超时,先这样吧,数据量着实有点太大了
+    func minCut(_ s: String) -> Int {
+        func isPalindromeList(list: [Character]) -> Bool {
+            var left = 0, right = list.count - 1
+            while left < right {
+                if list[left] == list[right] {
+                    left += 1
+                    right -= 1
+                } else {
+                    return false
+                }
+            }
+            return true
+        }
+        let list = Array(s)
+        if isPalindromeList(list: list) {
+            return 0
+        }
+        var map: [Int: [Int: Bool]] = [:]
+        for i in 0..<s.count {
+            var tempMap: [Int: Bool] = [:]
+            for j in (i..<s.count) {
+                tempMap[j] = isPalindromeList(list: Array(list[i...j]))
+            }
+            map[i] = tempMap
+        }
+        
+        var tempList: [Int] = Array(repeating: Int.max, count: s.count)
+        for i in 0..<s.count {
+            if map[0]![i]! {
+                tempList[i] = 0
+            } else {
+                for j in 0..<i where map[j+1]![i]! {
+                    tempList[i] = min(tempList[i], tempList[j] + 1)
+                }
+            }
+        }
+        return tempList[s.count-1]
+    }
+    
+    // MARK: 224.基本计算器
+    // 实现一个基本的计算器来计算一个简单的字符串表达式 s 的值。
+    // s由数字、'+'、'-'、'('、')'、和 ' ' 组成
+    func calculate(_ s: String) -> Int {
+        var sum = 0, sign = 1, stackList: [Int] = [], num = 0
+        let strList = Array(s)
+        stackList.append(sign)
+        for c in strList where c != " " {
+            if Int(String(c)) != nil {
+                num = num * 10 + Int(String(c))!
+            } else {
+                sum += sign * num
+                num = 0
+                switch c {
+                case "(":
+                    stackList.append(sign)
+                case ")":
+                    stackList.removeLast()
+                case "+":
+                    sign = stackList.last!
+                case "-":
+                    sign = -stackList.last!
+                default:
+                    break
+                }
+            }
+        }
+        if num != 0 {
+            sum += sign * num
+        }
+        return sum
+    }
+    
     // MARK: 338.比特位计数
     // 给定一个非负整数 num。对于 0 ≤ i ≤ num 范围中的每个数字 i ，计算其二进制数中的 1 的数目并将它们作为数组返回。
     func countBits(_ num: Int) -> [Int] {
@@ -1373,6 +1698,32 @@ class Solution {
             }
         }
         return maxCount
+    }
+    
+    // MARK: 503.下一个更大元素 II
+    // 给定一个循环数组（最后一个元素的下一个元素是数组的第一个元素），输出每个元素的下一个更大元素。数字 x 的下一个更大的元素是
+    // 按数组遍历顺序，这个数字之后的第一个比它更大的数，这意味着你应该循环地搜索它的下一个更大的数。如果不存在，则输出 -1。
+    func nextGreaterElements(_ nums: [Int]) -> [Int] {
+        if nums.count == 0 {
+            return []
+        }
+        if nums.count == 1 {
+            return [-1]
+        }
+        let list = nums + nums
+        var result: [Int] = []
+        for i in 0..<nums.count {
+            var hasNextGreater = false
+            for j in i+1..<list.count where list[j] > nums[i] {
+                result.append(list[j])
+                hasNextGreater = true
+                break
+            }
+            if !hasNextGreater {
+                result.append(-1)
+            }
+        }
+        return result
     }
     
     // MARK: 766.托普利茨矩阵
@@ -1563,11 +1914,57 @@ class NumMatrix {
     }
 }
 
-let SL = Solution()
-//var list: [[Character]] = [["5","3","4","6","7","8","9","1","2"],["6","7","2","1","9","5","3","4","8"],["1","9","8","3","4","2","5","6","7"],["8","5","9","7","6","1","4","2","3"],["4","2","6","8","5","3","7","9","1"],["7","1","3","9","2","4","8","5","6"],["9","6","1","5","3","7","2","8","4"],["2","8","7","4","1","9","6","3","5"],[".",".",".",".","8",".",".","7","9"]]
-var list: [[Character]] = [[".",".",".",".",".","7",".",".","9"],[".","4",".",".","8","1","2",".","."],[".",".",".","9",".",".",".","1","."],[".",".","5","3",".",".",".","7","2"],["2","9","3",".",".",".",".","5","."],[".",".",".",".",".","5","3",".","."],["8",".",".",".","2","3",".",".","."],["7",".",".",".","5",".",".","4","."],["5","3","1",".","7",".",".",".","."]]
+// MARK: 232. 用栈实现队列
+// 请你仅使用两个栈实现先入先出队列。队列应当支持一般队列的支持的所有操作（push、pop、peek、empty）：
+// 实现 MyQueue 类：
+// void push(int x) 将元素 x 推到队列的末尾
+// int pop() 从队列的开头移除并返回元素
+// int peek() 返回队列开头的元素
+// boolean empty() 如果队列为空，返回 true ；否则，返回 false
+class MyQueue {
+    
+    var list1: [Int]
+    var list2: [Int]
+    /** Initialize your data structure here. */
+    init() {
+        list1 = []
+        list2 = []
+    }
+    
+    /** Push element x to the back of queue. */
+    func push(_ x: Int) {
+        //每次添加新元素的时候把list1清栈,放进list2中入栈,然后添加新元素,然后倾倒给list1,栈顶也就是last元素是最先push的元素
+        var count = list1.count
+        for _ in 0..<count {
+            list2.append(list1.removeLast())
+        }
+        list2.append(x)
+        count = list2.count
+        for _ in 0..<count {
+            list1.append(list2.removeLast())
+        }
+    }
+    
+    /** Removes the element from in front of queue and returns that element. */
+    func pop() -> Int {
+        list1.removeLast()
+    }
+    
+    /** Get the front element. */
+    func peek() -> Int {
+        return list1.last ?? 0
+    }
+    
+    /** Returns whether the queue is empty. */
+    func empty() -> Bool {
+        return list1.isEmpty
+    }
+}
 
-SL.solveSudoku(&list)
+let SL = Solution()
+
+SL.calculate("(1+(4+5+2)-3)+(6+8)")
+                   
 
 
 
