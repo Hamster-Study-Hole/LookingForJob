@@ -1513,6 +1513,78 @@ class Solution {
         return result[list1.count][list2.count]
     }
     
+    // MARK: 54. 螺旋矩阵
+    // 给你一个 m 行 n 列的矩阵 matrix ，请按照 顺时针螺旋顺序 ，返回矩阵中的所有元素。
+    func spiralOrder(_ matrix: [[Int]]) -> [Int] {
+        if matrix.count <= 1 {
+            return matrix.first ?? []
+        }
+        if matrix.first?.count ?? 0 <= 1 {
+            return matrix.flatMap { (list) -> [Int] in
+                return list
+            }
+        }
+        var result: [Int] = []
+        let m = matrix.count
+        let n = matrix.first?.count ?? 0
+        for i in 0..<n {
+            result.append(matrix[0][i])
+        }
+        for j in 1..<m {
+            result.append(matrix[j][n-1])
+        }
+        for k in (0..<n-1).reversed() {
+            result.append(matrix[m-1][k])
+        }
+        for l in (1..<m-1).reversed() {
+            result.append(matrix[l][0])
+        }
+        if matrix.count > 2 && matrix.first?.count ?? 0 > 2 {
+            //数组降级
+            var list = Array(matrix[1..<matrix.count-1])
+            for i in 0..<list.count {
+                list[i] = Array(list[i][1..<(matrix.first?.count ?? 0)-1])
+            }
+            return result + spiralOrder(list)
+        }
+        return result
+    }
+    
+    // MARK: 59. 螺旋矩阵 II
+    // 给你一个正整数 n ，生成一个包含 1 到 n2 所有元素，且元素按顺时针顺序螺旋排列的 n x n 正方形矩阵 matrix 。
+    func generateMatrix(_ n: Int) -> [[Int]] {
+        func generateMatrix(result: inout [[Int]], x1: Int, y1: Int, x2: Int, y2: Int, start: Int) {
+            if x2 < x1 || y2 < y1 {
+                return
+            }
+            if x1 == x2 {
+                result[x1][y1] = start
+                return
+            }
+            var val = start
+            for i in y1..<y2 {
+                result[x1][i] = val
+                val += 1
+            }
+            for i in x1..<x2 {
+                result[i][y2] = val
+                val += 1
+            }
+            for i in (y1+1...y2).reversed() {
+                result[x2][i] = val
+                val += 1
+            }
+            for i in (x1+1...x2).reversed() {
+                result[i][y1] = val
+                val += 1
+            }
+            generateMatrix(result: &result, x1: x1 + 1, y1: y1 + 1, x2: x2 - 1, y2: y2 - 1, start: val)
+        }
+        var result = Array(repeating: Array(repeating: 0, count: n), count: n)
+        generateMatrix(result: &result, x1: 0, y1: 0, x2: n - 1, y2: n - 1, start: 1)
+        return result
+    }
+    
     // MARK: 131.分割回文串
     // 给定一个字符串 s，将 s 分割成一些子串，使每个子串都是回文串。返回 s 所有可能的分割方案。
     // 回溯加动态规划,目前效率有点低,可以考虑怎么优化下
@@ -1627,6 +1699,48 @@ class Solution {
         if num != 0 {
             sum += sign * num
         }
+        return sum
+    }
+    
+    // MARK: 227.基本计算器 II
+    // 给你一个字符串表达式 s ，请你实现一个基本计算器来计算并返回它的值。整数除法仅保留整数部分。
+    // s 由整数和算符 ('+', '-', '*', '/') 组成，中间由一些空格隔开
+    func calculate1(_ s: String) -> Int {
+        //这里给字符串加了以为,确保可以在计算完之后走一次运算符,把多余的temp加进去
+        //大致思路就是记录上一次的运算符,然后跟本次的数值进行运算,是+-可以直接加在resultList里,是*/的话跟resultList的最后一位进行运算
+        let list = Array(s) + "/"
+        var resultList: [Int] = []
+        var symbol: Character = "+", i = 0, temp = 0
+        while i < list.count {
+            if list[i] == " " {
+            } else {
+                if Int(String(list[i])) != nil {
+                    temp = temp * 10 + Int(String(list[i]))!
+                } else {
+                    switch symbol {
+                    case "+":
+                        resultList.append(temp)
+                    case "-":
+                        resultList.append(-temp)
+                    case "*":
+                        resultList[resultList.count - 1] *= temp
+                    case "/":
+                        resultList[resultList.count - 1] /= temp
+                    default:
+                        break
+                    }
+                    temp = 0
+                    symbol = list[i]
+                }
+            }
+            i += 1
+        }
+        var sum = 0
+        
+        for r in resultList {
+            sum += r
+        }
+        
         return sum
     }
     
@@ -1962,8 +2076,7 @@ class MyQueue {
 }
 
 let SL = Solution()
-
-SL.calculate("(1+(4+5+2)-3)+(6+8)")
+SL.generateMatrix(3)
                    
 
 
