@@ -1585,6 +1585,37 @@ class Solution {
         return result
     }
     
+    // MARK: 92.反转链表 II
+    // 给你单链表的头指针 head 和两个整数 left 和 right ，其中 left <= right 。请你反转从位置 left 到位置 right 的链表节点，返回 反转后的链表 。
+    func reverseBetween(_ head: ListNode?, _ left: Int, _ right: Int) -> ListNode? {
+        if left == right {
+            return head
+        }
+        var result = ListNode(-1, head), temp: ListNode? = result, temp1: ListNode?, start: ListNode?, end: ListNode?, num = 0
+        while num <= right, temp != nil {
+            if num < left {
+                start = temp
+            } else if num == left {
+                end = temp
+            }
+            if num >= left {
+                let a = temp?.next
+                temp?.next = temp1
+                temp1 = temp
+                temp = a
+                num += 1
+            } else {
+                temp = temp?.next
+                num += 1
+            }
+            if num == right + 1 {
+                end?.next = temp
+                start?.next = temp1
+            }
+        }
+        return result.next
+    }
+    
     // MARK: 131.分割回文串
     // 给定一个字符串 s，将 s 分割成一些子串，使每个子串都是回文串。返回 s 所有可能的分割方案。
     // 回溯加动态规划,目前效率有点低,可以考虑怎么优化下
