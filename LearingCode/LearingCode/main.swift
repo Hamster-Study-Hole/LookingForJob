@@ -1513,6 +1513,99 @@ class Solution {
         return result[list1.count][list2.count]
     }
     
+    // MARK: 45. 跳跃游戏 II
+    // 给定一个非负整数数组，你最初位于数组的第一个位置。数组中的每个元素代表你在该位置可以跳跃的最大长度。
+    // 你的目标是使用最少的跳跃次数到达数组的最后一个位置。
+    func jump(_ nums: [Int]) -> Int {
+        var step = 0, end = 0, maxSum = 0
+        for i in 0..<nums.count-1 {
+            // 每次尽可能的往远跳
+            maxSum = max(maxSum, i + nums[i])
+            if i == end {
+                end = maxSum
+                step += 1
+            }
+        }
+        return step
+    }
+    
+    // MARK: 46.全排列
+    // 给定一个 没有重复 数字的序列，返回其所有可能的全排列。
+    func permute(_ nums: [Int]) -> [[Int]] {
+        var result: [[Int]] = []
+        func permute(nums: [Int], temp: [Int]) {
+            if nums.count == 0 {
+                result.append(temp)
+            }
+            for i in 0..<nums.count {
+                var tempNums = nums, temp = temp
+                temp.append(nums[i])
+                tempNums.remove(at: i)
+                permute(nums: tempNums, temp: temp)
+            }
+        }
+        permute(nums: nums, temp: [])
+        return result
+    }
+    
+    // MARK: 51. N 皇后
+    // n 皇后问题 研究的是如何将 n 个皇后放置在 n×n 的棋盘上，并且使皇后彼此之间不能相互攻击。
+    // 给你一个整数 n ，返回所有不同的 n 皇后问题 的解决方案。
+    // 每一种解法包含一个不同的 n 皇后问题 的棋子放置方案，该方案中 'Q' 和 '.' 分别代表了皇后和空位。
+   
+    func solveNQueens(_ n: Int) -> [[String]] {
+        var list: [[String]] = Array(repeating: Array(repeating: ".", count: n), count: n)
+        var result: [[String]] = []
+        if n == 1 {
+            return [["Q"]]
+        }
+        func solveNQueensDfs(list: inout [[String]], rowList: [Int], cloumnList: [Int], n: Int) {
+            for i in 0..<list[n].count {
+                if rowList.contains(n) {
+                    continue
+                }
+                if cloumnList.contains(i) {
+                    continue
+                }
+                var hasQ = false
+                for j in 0...n {
+                    if i - j >= 0, list[n-j][i-j] == "Q" {
+                        hasQ = true
+                    }
+                }
+                for j in 0...n {
+                    if j + i < list[n].count, list[n-j][i+j] == "Q" {
+                        hasQ = true
+                    }
+                }
+                if hasQ {
+                    continue
+                }
+                list[n][i] = "Q"
+                if n == list.count - 1 {
+                    var temp: [String] = []
+                    for l in list {
+                        var str = ""
+                        for k in l {
+                            str += k
+                        }
+                        temp.append(str)
+                    }
+                    result.append(temp)
+                } else {
+                    var rowList = rowList
+                    rowList.append(n)
+                    var cloumnList = cloumnList
+                    cloumnList.append(i)
+                    solveNQueensDfs(list: &list, rowList: rowList, cloumnList: cloumnList, n: n + 1)
+                }
+                list[n][i] = "."
+            }
+        }
+        solveNQueensDfs(list: &list, rowList: [], cloumnList: [], n: 0)
+        return result
+    }
+    
     // MARK: 54. 螺旋矩阵
     // 给你一个 m 行 n 列的矩阵 matrix ，请按照 顺时针螺旋顺序 ，返回矩阵中的所有元素。
     func spiralOrder(_ matrix: [[Int]]) -> [Int] {
@@ -1583,6 +1676,95 @@ class Solution {
         var result = Array(repeating: Array(repeating: 0, count: n), count: n)
         generateMatrix(result: &result, x1: 0, y1: 0, x2: n - 1, y2: n - 1, start: 1)
         return result
+    }
+    
+    // MARK: 61.旋转链表
+    // 定一个链表，旋转链表，将链表每个节点向右移动 k 个位置，其中 k 是非负数。
+    func rotateRight(_ head: ListNode?, _ k: Int) -> ListNode? {
+        
+        if head == nil || k == 0 {
+            return head
+        }
+        var temp = head, count = 0
+        while temp != nil {
+            count += 1
+            temp = temp?.next
+        }
+        let k = k % count
+        if k == 0 {
+            return head
+        }
+        var head = head, result: ListNode?, next: ListNode? = head
+        for i in 0..<count {
+            if i == count - k - 1 {
+                let temp = head?.next
+                head?.next = nil
+                head = temp
+                result = temp
+            } else {
+                head = head?.next
+            }
+            if head?.next == nil {
+                head?.next = next
+                break
+            }
+        }
+        return result
+    }
+    
+    // MARK: 73.矩阵置零
+    // 给定一个 m x n 的矩阵，如果一个元素为 0 ，则将其所在行和列的所有元素都设为 0 。请使用 原地 算法。
+    func setZeroes(_ matrix: inout [[Int]]) {
+        var rowList: Set<Int> = [], columnList: Set<Int> = []
+        
+        for i in 0..<matrix.count {
+            for j in 0..<matrix[i].count {
+                if matrix[i][j] == 0 {
+                    rowList.insert(i)
+                    columnList.insert(j)
+                }
+            }
+        }
+        for row in rowList {
+            matrix[row] = Array(repeating: 0, count: matrix[row].count)
+        }
+        for column in columnList {
+            for i in 0..<matrix.count {
+                matrix[i][column] = 0
+            }
+        }
+    }
+    
+    // MARK: 83.删除排序链表中的重复元素
+    // 存在一个按升序排列的链表，给你这个链表的头节点 head ，请你删除所有重复的元素，使每个元素 只出现一次 。
+    func deleteDuplicates(_ head: ListNode?) -> ListNode? {
+        
+        var head = head
+        let result = head
+        while head != nil {
+            while head?.val == head?.next?.val {
+                head?.next = head?.next?.next
+            }
+            head = head?.next
+        }
+        return result
+    }
+    
+    // 删除重复结点,忘记是第几题了
+    func deleteDuplicates1(_ head: ListNode?) -> ListNode? {
+        let result = ListNode(Int.max, head)
+        var temp: ListNode? = result
+        while temp?.next != nil, temp?.next?.next != nil {
+            if temp?.next?.val == temp?.next?.next?.val {
+                let val = temp?.next?.val
+                while temp?.next != nil, temp?.next?.val == val {
+                    temp?.next = temp?.next?.next
+                }
+            } else {
+                temp = temp?.next
+            }
+        }
+        return result.next
     }
     
     // MARK: 92.反转链表 II
@@ -1698,6 +1880,17 @@ class Solution {
             }
         }
         return tempList[s.count-1]
+    }
+    
+    // MARK: 191.位1的个数
+    // 编写一个函数，输入是一个无符号整数（以二进制串的形式），返回其二进制表达式中数字位数为 '1' 的个数（也被称为汉明重量）。
+    func hammingWeight(_ n: Int) -> Int {
+        var result = 0, n = n
+        while n > 0 {
+            result += n % 2
+            n /= 2
+        }
+        return result
     }
     
     // MARK: 224.基本计算器
@@ -1843,6 +2036,27 @@ class Solution {
             }
         }
         return maxCount
+    }
+    
+    // MARK: 456. 132模式
+    // 给你一个整数数组 nums ，数组中共有 n 个整数。132 模式的子序列 由三个整数 nums[i]、nums[j] 和 nums[k] 组成，并同时满足：i < j < k 和 nums[i] < nums[k] < nums[j] 。如果 nums 中存在 132 模式的子序列 ，返回 true ；否则，返回 false 。
+    func find132pattern(_ nums: [Int]) -> Bool {
+        //复杂度高,低的不会写
+        var list1: [Int] = []
+        var minNum = Int.max
+        for i in 0..<nums.count {
+            list1.append(minNum)
+            minNum = min(minNum, nums[i])
+            if nums[i] <= minNum {
+                continue
+            }
+            for j in i..<nums.count {
+                if nums[j] > minNum, nums[i] > nums[j] {
+                    return true
+                }
+            }
+        }
+        return false
     }
     
     // MARK: 503.下一个更大元素 II
@@ -1993,7 +2207,9 @@ class Solution {
         return maxNum
     }
     
+    
 }
+
 
 // MARK: 303.区域和检索 - 数组不可变
 // 给定一个整数数组  nums，求出数组从索引 i 到 j（i ≤ j）范围内元素的总和，包含 i、j 两点。
@@ -2106,11 +2322,25 @@ class MyQueue {
     }
 }
 
+// MARK: 1603. 设计停车系统
+class ParkingSystem {
+    var list = [0,0,0]
+    
+    init(_ big: Int, _ medium: Int, _ small: Int) {
+        list[0] = big
+        list[1] = medium
+        list[2] = small
+    }
+    
+    func addCar(_ carType: Int) -> Bool {
+        list[carType-1] -= 1
+        return list[carType-1] >= 0
+    }
+}
+
 let SL = Solution()
-SL.generateMatrix(3)
-                   
-
-
+//SL.rotateRight(ListNode(1, ListNode(2, ListNode(3, ListNode(4, ListNode(5))))), 2)
+SL.rotateRight(ListNode(1), 1)
 
 
 
