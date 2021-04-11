@@ -1548,6 +1548,92 @@ class Solution {
         return result
     }
     
+    // MARK: 47.全排列II
+    // 给定一个可包含重复数字的序列 nums ，按任意顺序 返回所有不重复的全排列。
+    func permuteUnique(_ nums: [Int]) -> [[Int]] {
+        let nums = nums.sorted()
+        var result: [[Int]] = []
+        func permute(nums: [Int], temp: [Int]) {
+            if nums.count == 0 {
+                result.append(temp)
+            }
+            var a: Int?
+            for i in 0..<nums.count {
+                //提前排序,跳过重复数字,减少无效操作
+                if a == nums[i] {
+                    continue
+                }
+                a = nums[i]
+                var tempNums = nums, temp = temp
+                temp.append(nums[i])
+                tempNums.remove(at: i)
+                permute(nums: tempNums, temp: temp)
+            }
+        }
+        permute(nums: nums, temp: [])
+        return result
+    }
+    // MARK: 48.旋转图像
+    // 给定一个 n × n 的二维矩阵 matrix 表示一个图像。请你将图像顺时针旋转 90 度。原地旋转
+    func rotate(_ matrix: inout [[Int]]) {
+        //顺时针旋转90可以拆成一次对角线交换,和一次上下翻转
+        let n = matrix.count
+        for i in 0..<n {
+            for j in 0..<n-1-i {
+                let temp = matrix[i][j]
+                matrix[i][j] = matrix[n-1-j][n-1-i]
+                matrix[n-1-j][n-1-i] = temp
+            }
+        }
+        for j in 0..<n {
+            for i in 0..<n/2 {
+                let temp = matrix[i][j]
+                matrix[i][j] = matrix[n-1-i][j]
+                matrix[n-1-i][j] = temp
+            }
+        }
+    }
+    
+    // MARK: 49. 字母异位词分组
+    // 给定一个字符串数组，将字母异位词组合在一起。字母异位词指字母相同，但排列不同的字符串。
+    func groupAnagrams(_ strs: [String]) -> [[String]] {
+        var result: [[Character] : [String]] = [:]
+        for str in strs {
+            let set: [Character] = Array(str).sorted()
+            if result[set] == nil {
+                result[set] = [str]
+            } else {
+                result[set]?.append(str)
+            }
+        }
+        return Array(result.values)
+    }
+    
+    // MARK: 50. Pow(x, n)
+    // 实现 pow(x, n) ，即计算 x 的 n 次幂函数（即，xn）。
+    func myPow(_ x: Double, _ n: Int) -> Double {
+        if x == 0 {
+            return 0
+        }
+        if n == 0 {
+            return 1
+        }
+        var absn = abs(n), sum: Double = 1, tempx = x
+        //需要二分,不然太多了就超时了,都是套路,ciao
+        while absn > 0 {
+            if absn % 2 == 1 {
+                sum *= tempx
+            }
+            tempx *= tempx
+            absn /= 2
+        }
+        if n > 0 {
+            return sum
+        } else {
+            return 1 / sum
+        }
+    }
+    
     // MARK: 51. N 皇后
     // n 皇后问题 研究的是如何将 n 个皇后放置在 n×n 的棋盘上，并且使皇后彼此之间不能相互攻击。
     // 给你一个整数 n ，返回所有不同的 n 皇后问题 的解决方案。
@@ -1606,6 +1692,22 @@ class Solution {
         return result
     }
     
+    // MARK: 53. 最大子序和
+    // 给定一个整数数组 nums ，找到一个具有最大和的连续子数组（子数组最少包含一个元素），返回其最大和。
+    func maxSubArray(_ nums: [Int]) -> Int {
+        var sum = 0, maxNum = Int.min
+        for num in nums {
+            //这里如果之前的sum是大于0的,不会使和小于当前值,进行累加,反之舍弃sum,从新计数,因为加上会变小
+            if sum <= 0 {
+                sum = num
+            } else {
+                sum += num
+            }
+            maxNum = max(maxNum, sum)
+        }
+        return maxNum
+    }
+    
     // MARK: 54. 螺旋矩阵
     // 给你一个 m 行 n 列的矩阵 matrix ，请按照 顺时针螺旋顺序 ，返回矩阵中的所有元素。
     func spiralOrder(_ matrix: [[Int]]) -> [Int] {
@@ -1643,6 +1745,86 @@ class Solution {
         return result
     }
     
+    // MARK: 55. 跳跃游戏
+    // 给定一个非负整数数组 nums ，你最初位于数组的 第一个下标 。数组中的每个元素代表你在该位置可以跳跃的最大长度。
+    // 判断你是否能够到达最后一个下标。
+    func canJump(_ nums: [Int]) -> Bool {
+        var num = nums.count - 1
+        for i in (0..<nums.count).reversed() {
+            if i + nums[i] >= num {
+                num = i
+            }
+        }
+        return num == 0
+    }
+    func canJump1(_ nums: [Int]) -> Bool {
+        if nums.count == 1 {
+            return true
+        }
+        var maxCount = nums[0]
+        for i in 1..<nums.count {
+            if i > maxCount {
+                return false
+            } else if maxCount >= nums.count - 1 {
+                return true
+            }
+            if i + nums[i] > maxCount {
+                maxCount = i + nums[i]
+            }
+        }
+        return true
+    }
+    
+    // MARK: 56.合并区间
+    // 以数组 intervals 表示若干个区间的集合，其中单个区间为 intervals[i] = [starti, endi] 。请你合并所有重叠的区间，并返回一个不重叠的区间数组，该数组需恰好覆盖输入中的所有区间。
+    func merge(_ intervals: [[Int]]) -> [[Int]] {
+        if intervals.count == 0 {
+            return intervals
+        }
+        let intervals = intervals.sorted(by: {return $0[0] < $1[0]})
+        var result: [[Int]] = [], start = intervals[0][0], end = intervals[0][1]
+        for i in 1..<intervals.count {
+            if intervals[i][0] > end {
+                result.append([start, end])
+                start = intervals[i][0]
+                end = intervals[i][1]
+            } else if intervals[i][1] > end {
+                end = intervals[i][1]
+            }
+        }
+        result.append([start, end])
+        return result
+    }
+    
+    // MARK: 57.插入区间
+    // 给你一个 无重叠的 ，按照区间起始端点排序的区间列表。
+    // 在列表中插入一个新的区间，你需要确保列表中的区间仍然有序且不重叠（如果有必要的话，可以合并区间）。
+    func insert(_ intervals: [[Int]], _ newInterval: [Int]) -> [[Int]] {
+        var intervals = intervals
+        intervals.append(newInterval)
+        return merge(intervals)
+    }
+    
+    // MARK: 58.最后一个单词的长度
+    // 给你一个字符串 s，由若干单词组成，单词之间用空格隔开。返回字符串中最后一个单词的长度。如果不存在最后一个单词，请返回 0 。
+    // 单词 是指仅由字母组成、不包含任何空格字符的最大子字符串。
+    func lengthOfLastWord(_ s: String) -> Int {
+        let list = Array(s)
+        var count = 0
+        //这里比较坑的就是末尾有可能是空格,
+        for i in (0..<list.count).reversed() {
+            if list[i] == " " {
+                if count > 0 {
+                    break
+                } else {
+                    continue
+                }
+            }
+            count += 1
+        }
+        return count
+    }
+    
     // MARK: 59. 螺旋矩阵 II
     // 给你一个正整数 n ，生成一个包含 1 到 n2 所有元素，且元素按顺时针顺序螺旋排列的 n x n 正方形矩阵 matrix 。
     func generateMatrix(_ n: Int) -> [[Int]] {
@@ -1675,6 +1857,24 @@ class Solution {
         }
         var result = Array(repeating: Array(repeating: 0, count: n), count: n)
         generateMatrix(result: &result, x1: 0, y1: 0, x2: n - 1, y2: n - 1, start: 1)
+        return result
+    }
+    
+    #warning("看懂逻辑...")
+    func getPermutation(_ n: Int, _ k: Int) -> String {
+        var list: [Int] = [], fact = 1, k = k - 1
+        var result: String = ""
+        for i in 1...n {
+            list.append(i)
+            fact *= i
+        }
+        for i in 0..<n {
+            let partSize = fact / (n-i), idx = k / partSize
+            result.append(String(list[idx]))
+            list.remove(at: idx)
+            k %= partSize
+            fact /= (n-i)
+        }
         return result
     }
     
@@ -1735,6 +1935,89 @@ class Solution {
         }
     }
     
+    // MARK: 74.搜索二维矩阵
+    // 编写一个高效的算法来判断 m x n 矩阵中，是否存在一个目标值。该矩阵具有如下特性：
+    // 每行中的整数从左到右按升序排列。每行的第一个整数大于前一行的最后一个整数。
+    func searchMatrix(_ matrix: [[Int]], _ target: Int) -> Bool {
+        for m in matrix where m.last ?? Int.min >= target {
+            for j in m {
+                if j == target { return true }
+            }
+            return false
+        }
+        return false
+    }
+    
+    // MARK: 75.颜色分类
+    // 给定一个包含红色、白色和蓝色，一共 n 个元素的数组，原地对它们进行排序，使得相同颜色的元素相邻，并按照红色、白色、蓝色顺序排列。
+    func sortColors(_ nums: inout [Int]) {
+        var l = 0, r = nums.count - 1, i = 0
+        while i <= r  {
+            while i <= r, nums[i] == 2 {
+                nums.swapAt(i, r)
+                r -= 1
+            }
+            if nums[i] == 0 {
+                nums.swapAt(i, l)
+                l += 1
+            }
+            i += 1
+        }
+    }
+    
+    func findMin(_ nums: [Int]) -> Int {
+        var l = 0, r = nums.count - 1
+        while l < r {
+            let mid = (l+r) / 2
+            if nums[mid] < nums[r] {
+                r = mid
+            } else if nums[mid] > nums[r] {
+                l = mid + 1
+            } else {
+                r -= 1
+            }
+        }
+        return nums[l]
+    }
+    
+    // MARK: 80.删除排序数组中的重复项 II
+    // 给你一个有序数组 nums ，请你 原地 删除重复出现的元素，使每个元素 最多出现两次 ，返回删除后数组的新长度。
+    // 不要使用额外的数组空间，你必须在 原地 修改输入数组 并在使用 O(1) 额外空间的条件下完成。
+    func removeDuplicates1(_ nums: inout [Int]) -> Int {
+        var map:[Int: Int] = [:], i = 0
+        while i < nums.count {
+            if map[nums[i]] == 2 {
+                nums.remove(at: i)
+                continue
+            } else if map[nums[i]] == nil {
+                map[nums[i]] = 1
+            } else {
+                map[nums[i]]! += 1
+            }
+            i += 1
+        }
+        return i
+    }
+    
+    func search1(_ nums: [Int], _ target: Int) -> Bool {
+        var left = 0, right = nums.count - 1
+        while left < right {
+            let mid = (left + right) / 2
+            if nums[mid] > target {
+                right = mid
+            } else if nums[mid] < target {
+                left = mid + 1
+            } else {
+                return true
+            }
+        }
+        if left == right {
+            return nums[left] == target
+        }
+        return false
+    }
+    
+    
     // MARK: 83.删除排序链表中的重复元素
     // 存在一个按升序排列的链表，给你这个链表的头节点 head ，请你删除所有重复的元素，使每个元素 只出现一次 。
     func deleteDuplicates(_ head: ListNode?) -> ListNode? {
@@ -1766,6 +2049,90 @@ class Solution {
         }
         return result.next
     }
+    
+    // MARK: 88.合并两个有序数组
+    // 给你两个有序整数数组 nums1 和 nums2，请你将 nums2 合并到 nums1 中，使 nums1 成为一个有序数组。
+    // 初始化 nums1 和 nums2 的元素数量分别为 m 和 n 。你可以假设 nums1 的空间大小等于 m + n，这样它就有足够的空间保存来自 nums2 的元素。
+    func merge(_ nums1: inout [Int], _ m: Int, _ nums2: [Int], _ n: Int) {
+        //同样的有序合并,只不过不让开辟空间,然后从末尾开始进行操作,最后判断省去第二个i>=0的判断
+        var i = m - 1, j = n - 1
+        while i >= 0, j >= 0 {
+            if nums1[i] > nums2[j] {
+                nums1[i+j+1] = nums1[i]
+                i -= 1
+            } else {
+                nums1[i+j+1] = nums2[j]
+                j -= 1
+            }
+        }
+        while j >= 0 {
+            nums1[j] = nums2[j]
+        }
+        
+    }
+    
+    // MARK: 90.子集II
+    // 给你一个整数数组 nums ，其中可能包含重复元素，请你返回该数组所有可能的子集（幂集）。
+    // 解集 不能 包含重复的子集。返回的解集中，子集可以按 任意顺序 排列。
+    func subsetsWithDup(_ nums: [Int]) -> [[Int]] {
+        var result: [[Int]] = []
+        var temp: [Int] = [], nums = nums.sorted(), visit = Array(repeating: 0, count: nums.count)
+        func subsetsWithDupDfs(result: inout [[Int]], temp: inout [Int], nums: inout [Int], visit: inout [Int], n: Int, length: Int) {
+            if n == length {
+                result.append(temp)
+                return
+            }
+            //根据后面的条件来进行剪枝操作
+            if n == 0 || !(nums[n] == nums[n-1] && visit[n-1] == 0) {
+                visit[n] = 1
+                temp.append(nums[n])
+                subsetsWithDupDfs(result: &result, temp: &temp, nums: &nums, visit: &visit, n: n + 1, length: length)
+                temp.removeLast()
+                visit[n] = 0
+            }
+            //本次不选数字进行加一,多次的话就是一个空的子集
+            subsetsWithDupDfs(result: &result, temp: &temp, nums: &nums, visit: &visit, n: n + 1, length: length)
+        }
+        subsetsWithDupDfs(result: &result, temp: &temp, nums: &nums, visit: &visit, n: 0, length: nums.count)
+        return result
+    }
+    
+    func clumsy(_ N: Int) -> Int {
+        let tempList = ["*", "/", "+", "-"]
+        var list: [Int] = [], i = 0
+        if N == 1 {
+            return 1
+        }
+        var sum = 0, a = "*"
+        list.append(N)
+        for x in (1...N-1).reversed() {
+            switch a {
+            case "*":
+                list[list.count-1] *= x
+            case "/":
+                list[list.count-1] /= x
+            case "+":
+                list.append(0 - x)
+            case "-":
+                list.append(x)
+            default:
+                break
+            }
+            i += 1
+            a = tempList[i % 4]
+        }
+        
+        for i in 0..<list.count {
+            if i == 0 {
+                sum = list[i]
+            } else {
+                sum -= list[i]
+            }
+        }
+        return sum
+    }
+    
+    
     
     // MARK: 92.反转链表 II
     // 给你单链表的头指针 head 和两个整数 left 和 right ，其中 left <= right 。请你反转从位置 left 到位置 right 的链表节点，返回 反转后的链表 。
@@ -1882,6 +2249,41 @@ class Solution {
         return tempList[s.count-1]
     }
     
+    // MARK: 179.最大数
+    // 给定一组非负整数 nums，重新排列每个数的顺序（每个数不可拆分）使之组成一个最大的整数。
+    // 注意：输出结果可能非常大，所以你需要返回一个字符串而不是整数。
+    func largestNumber(_ nums: [Int]) -> String {
+        if nums.filter({return $0 != 0}).count == 0 {
+            return "0"
+        }
+        let list = nums.sorted { (i, j) -> Bool in
+            let l1 = String(i), l2 = String(j)
+            return Int(l1 + l2)! > Int(l2 + l1)!
+        }
+        var result = ""
+        for l in list {
+            result += String(l)
+        }
+        return result
+    }
+    
+    // MARK: 190.颠倒二进制位
+    // 颠倒给定的 32 位无符号整数的二进制位。
+    func reverseBits(_ n: Int) -> Int {
+        var n = n, sum = 0, count = 0
+        while n != 0 {
+            sum *= 2
+            sum += n % 2
+            n /= 2
+            count += 1
+        }
+        while count < 32 {
+            sum *= 2
+            count += 1
+        }
+        return sum
+    }
+    
     // MARK: 191.位1的个数
     // 编写一个函数，输入是一个无符号整数（以二进制串的形式），返回其二进制表达式中数字位数为 '1' 的个数（也被称为汉明重量）。
     func hammingWeight(_ n: Int) -> Int {
@@ -1966,6 +2368,53 @@ class Solution {
         }
         
         return sum
+    }
+    
+    // MARK: 263.丑数
+    // 给你一个整数 n ，请你判断 n 是否为 丑数 。如果是，返回 true ；否则，返回 false 。
+    // 丑数 就是只包含质因数 2、3 和/或 5 的正整数。默认1是丑数
+    func isUgly(_ n: Int) -> Bool {
+        var n = n
+        //因为是235的乘积,所以不会乘出来负数
+        while n > 0 {
+            let temp = n
+            for i in [2, 3, 5] {
+                if n % i == 0 {
+                    n /= i
+                }
+            }
+            if n == 1 {
+                return true
+            }
+            if n == temp {
+                return false
+            }
+        }
+        return false
+    }
+    
+    
+    
+    // MARK: 264.丑数 II
+    // 给你一个整数 n ，请你找出并返回第 n 个 丑数 。
+    // 丑数 就是只包含质因数 2、3 和/或 5 的正整数。默认1是丑数
+    func nthUglyNumber(_ n: Int) -> Int {
+        var l2 = 0, l3 = 0, l5 = 0, nums = Array(repeating: 1, count: n)
+        for i in 1..<n {
+            let n2 = nums[l2] * 2, n3 = nums[l3] * 3, n5 = nums[l5] * 5, minNum = min(n2, n3, n5)
+            nums[i] = minNum
+            if minNum == n2 {
+                l2 += 1
+            }
+            if minNum == n3 {
+                l3 += 1
+            }
+            if minNum == n5 {
+                l5 += 1
+            }
+            
+        }
+        return nums[n-1]
     }
     
     // MARK: 338.比特位计数
@@ -2207,6 +2656,23 @@ class Solution {
         return maxNum
     }
     
+    // MARK: 1143. 最长子序列
+    // 两个字符串的 公共子序列 是这两个字符串所共同拥有的子序列。
+    func longestCommonSubsequence(_ text1: String, _ text2: String) -> Int {
+        let list1 = Array(text1), list2 = Array(text2)
+        var t: [[Int]] = Array(repeating: Array(repeating: 0, count: list2.count + 1), count: list1.count + 1)
+        for i in 1...list1.count {
+            for j in 1...list2.count {
+                if list1[i-1] == list2[j-1] {
+                    t[i][j] = t[i-1][j-1] + 1
+                } else {
+                    t[i][j] = max(t[i][j-1], t[i-1][j])
+                }
+            }
+        
+        }
+        return t[list1.count][list2.count]
+    }
     
 }
 
@@ -2339,8 +2805,7 @@ class ParkingSystem {
 }
 
 let SL = Solution()
-//SL.rotateRight(ListNode(1, ListNode(2, ListNode(3, ListNode(4, ListNode(5))))), 2)
-SL.rotateRight(ListNode(1), 1)
+SL.nthUglyNumber(10)
 
 
 
